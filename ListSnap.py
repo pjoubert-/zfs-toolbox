@@ -1,11 +1,13 @@
-# Lists snapshots from a remote host, and return a list of them
+# Some useful functions for snapshot management
 #
+# sync_snapshots: sync recursively datasets and snapshots from host1/dataset1 to host2/dataset2
 #
-#
-#
+
 
 import ZfsFunc
 import time
+import argparse
+
 
 host_1 = "sp7"
 host_1_path = "data/midterm"
@@ -13,6 +15,9 @@ host_1_path = "data/midterm"
 host_2 = "spsnap3"
 host_2_path = "backup/sp7"
 
+"""
+snapshots functions
+"""
 def get_snapshots(host, dataset):
     snapshots_list = ZfsFunc.list(host, dataset, type='snapshot', recursive=True, properties=['name', 'used', 'compressratio'])
     return snapshots_list
@@ -71,22 +76,43 @@ def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots):
         print "sending %s" % str(dataset)
         ZfsFunc.send_snapshot(host_1, host_2, host_1_path, host_2_path + dataset.split(host_1_path)[1], dataset, snapshots[dataset])
 
-tps = time.time()
-host_1_list = get_snapshots(host_1, host_1_path)
-print "%s : %d datasets" % (host_1, len(host_1_list['values']))
-host_2_list = get_snapshots(host_2, host_2_path)
-print "%s : %d datasets" % (host_2, len(host_2_list['values']))
-totaltime = time.time() - tps
-print totaltime
 
-tps = time.time()
-new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, host_1_path, host_2_path)
-totaltime = time.time() - tps
-tps = time.time()
-print totaltime
+"""
+higher level functions
+"""
+def sync_snapshots(host1, source_path, host2, target_path):
+    tps = time.time()
+    host_1_list = get_snapshots(host_1, host_1_path)
+    print "%s : %d datasets" % (host_1, len(host_1_list['values']))
+    host_2_list = get_snapshots(host_2, host_2_path)
+    print "%s : %d datasets" % (host_2, len(host_2_list['values']))
+    totaltime = time.time() - tps
+    print totaltime
 
-print "datasets to send: %d" % len(new_datasets)
-transfer_datasets(host_1, host_2, host_1_path, host_2_path, new_datasets)
-transfer_snasphots(host_1, host_2, host_1_path, host_2_path, new_snapshots)
-totaltime = time.time() - tps
-print totaltime
+    tps = time.time()
+    new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, host_1_path, host_2_path)
+    totaltime = time.time() - tps
+    tps = time.time()
+    print totaltime
+
+    print "datasets to send: %d" % len(new_datasets)
+    transfer_datasets(host_1, host_2, host_1_path, host_2_path, new_datasets)
+    transfer_snasphots(host_1, host_2, host_1_path, host_2_path, new_snapshots)
+    totaltime = time.time() - tps
+    print totaltime
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("action", help="action. Available actions: sync")
+    parser.add_argument("host1",help="host to replictate from")
+    parser.add_argument("source_dataset", help="origin dataset. Replication is recursive")
+    parser.add_argument("host2", help="host to replicate to")
+    parser.add_argument("target_dataset", help="destination dataset. Replication is recursive")
+    try:
+        args = parser.parse_args()
+        if args.action == "sync":
+            sync_snapshots(args.host1, args.source_dataset, args.host2, args.target_dataset)
+
+    except:
+        parser.print_help()
+

@@ -36,7 +36,7 @@ def list(host, dataset, type='dataset', recursive=False, properties=['name']):
     return ordered_list
 
 def send_dataset(host1, host2, source_set, target_path):
-    command = (REMOTE_COMMAND, host1, "%s send -RvP %s | %s %s %s recv -v %s" % ( \
+    command = (REMOTE_COMMAND, host1, "%s send -RP %s | %s %s %s recv -vF %s" % ( \
                         ZFS_COMMAND, source_set, REMOTE_COMMAND, host2, ZFS_COMMAND, target_path)) 
     print "send dataset!"
     try:
@@ -56,7 +56,7 @@ def send_dataset(host1, host2, source_set, target_path):
 
 
 def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
-    command = (REMOTE_COMMAND, host1, "%s send -vI %s %s@%s | %s %s %s recv -Fv %s" % \
+    command = (REMOTE_COMMAND, host1, "%s send -I %s %s@%s | %s %s %s recv -vF %s" % \
                         (ZFS_COMMAND, snapshots[0], dataset, snapshots[-1], REMOTE_COMMAND, host2, ZFS_COMMAND,
                             target_path))
     print command
