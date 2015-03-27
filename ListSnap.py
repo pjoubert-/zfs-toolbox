@@ -9,12 +9,6 @@ import time
 import argparse
 
 
-host_1 = "sp7"
-host_1_path = "data/midterm"
-
-host_2 = "spsnap3"
-host_2_path = "backup/sp7"
-
 """
 snapshots functions
 """
