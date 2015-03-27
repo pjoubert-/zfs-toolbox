@@ -41,7 +41,7 @@ def send_dataset(host1, host2, source_set, target_path):
     print "send dataset!"
     try:
         print "sending source_set ?"
-        for line in check_output(command, shell=True).split('\n'):
+        for line in check_output(command).split('\n'):
            if line !="":
                print line
        # command = ("ssh","sp7", 'ls | ssh sp7c wc')
