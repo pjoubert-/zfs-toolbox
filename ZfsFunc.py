@@ -38,7 +38,9 @@ def list(host, dataset, type='dataset', recursive=False, properties=['name']):
 def send_dataset(host1, host2, source_set, target_path):
     command = (REMOTE_COMMAND, host1, "%s send -RvP %s | %s %s %s recv -v %s" % ( \
                         ZFS_COMMAND, source_set, REMOTE_COMMAND, host2, ZFS_COMMAND, target_path)) 
+    print "send dataset!"
     try:
+        print "sending source_set ?"
         for line in check_output(command, shell=True).split('\n'):
            if line !="":
                print line
@@ -53,5 +55,15 @@ def send_dataset(host1, host2, source_set, target_path):
 
 
 
-def send_snapshot():
-    pass
+def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
+    command = (REMOTE_COMMAND, host1, "%s send -vI %s %s@%s | %s %s %s recv -Fv %s" % \
+                        (ZFS_COMMAND, snapshots[0], dataset, snapshots[-1], REMOTE_COMMAND, host2, ZFS_COMMAND,
+                            target_path))
+    print command
+    try:
+        print "sending snapshot"
+        for line in check_output(command).split('\n'):
+            print line
+    except CalledProcessError:
+        print "Error ! Error !"
+    return
