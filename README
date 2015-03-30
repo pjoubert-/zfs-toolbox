@@ -1,3 +1,4 @@
 This piece of software synchronizes the snapshot from host1 to host2 (through ssh)
 
-
+Currently functions are:
+* sync -> synchronize datasets (and subdatasets) from host 1 to host2
