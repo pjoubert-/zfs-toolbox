@@ -35,9 +35,9 @@ def list(host, dataset, type='dataset', recursive=False, properties=['name']):
         return "list failed"
     return ordered_list
 
-def send_dataset(host1, host2, source_set, target_path):
-    command = (REMOTE_COMMAND, host1, "%s send -RP %s | %s %s %s recv -vF %s" % ( \
-                        ZFS_COMMAND, source_set, REMOTE_COMMAND, host2, ZFS_COMMAND, target_path)) 
+def send_dataset(host1, host2, source_set, target_path, snapshot):
+    command = (REMOTE_COMMAND, host1, "%s send -RP %s@%s | %s %s %s recv -vF %s" % ( \
+                        ZFS_COMMAND, source_set, snapshot, REMOTE_COMMAND, host2, ZFS_COMMAND, target_path))
     print "send dataset!"
     try:
         print "sending source_set ?"
@@ -50,6 +50,7 @@ def send_dataset(host1, host2, source_set, target_path):
        #     print line
     except CalledProcessError:
         print "error sending dataset %s" % source_set
+        print "command = %s" % str(command)
         return "send dataset failed"
     return True
 
