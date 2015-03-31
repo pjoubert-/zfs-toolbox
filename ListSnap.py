@@ -53,8 +53,8 @@ def find_last_common_snapshot(host_list_1, host_list_2, host_1_path, host_2_path
                     snapshot_not_in_host_list_2[dataset].append(snap)
                 last_snapshot = snap
 
-    print "snapshots to sync %d" % len(snapshot_not_in_host_list_2)
-    print "datasets to sync %d" % len(dataset_not_in_host_list_2)
+    print "snapshots to sync: %d" % len(snapshot_not_in_host_list_2)
+    print "datasets to sync: %d" % len(dataset_not_in_host_list_2)
 
     return dataset_not_in_host_list_2, snapshot_not_in_host_list_2
 
@@ -69,7 +69,7 @@ def transfer_datasets(host_1, host_2, host_1_path, host_2_path, datasets):
 def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots):
     # snapshot is a dict of datasets, each element key is a dataset containing a list of snapshot
     for dataset in snapshots:
-        print "sending %s" % dataset
+        print "sending snapshots of %s" % dataset
         ZfsFunc.send_snapshot(host_1, host_2, host_1_path, host_2_path + dataset.split(host_1_path)[1], dataset, snapshots[dataset])
 
 
@@ -83,19 +83,29 @@ def sync_snapshots(host1, source_path, host2, target_path):
     host_2_list = get_snapshots(host2, target_path)
     print "%s : %d datasets" % (host2, len(host_2_list['values']))
     totaltime = time.time() - tps
-    print totaltime
+    print "duration %d" % int(totaltime)
 
     tps = time.time()
     new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, source_path, target_path)
     totaltime = time.time() - tps
     tps = time.time()
-    print totaltime
+    print "duration %d" % int(totaltime)
 
     print "datasets to send: %d" % len(new_datasets)
     transfer_datasets(host1, host2, source_path, target_path, new_datasets)
     transfer_snasphots(host1, host2, source_path, target_path, new_snapshots)
     totaltime = time.time() - tps
-    print totaltime
+    print "duration %d" % int(totaltime)
+
+
+def get_stats(host, dataset):
+    """Computes statistics against the host"""
+
+    datasets = get_snapshots(host, dataset)
+    ndatasets = len(datasets['values'])
+    nsnapshot = reduce(lambda x, y: x + y, [len(snapshots) for snapshots in datasets['values']])
+    print nsnapshot
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -108,6 +118,8 @@ if __name__ == "__main__":
         args = parser.parse_args()
         if args.action == "sync":
             sync_snapshots(args.host1, args.source_dataset, args.host2, args.target_dataset)
+        if args.action == "stats":
+            get_stats(args.host1, args.source_dataset)
 
     except argparse.ArgumentError:
         print str(e)
