@@ -4,6 +4,8 @@ from subprocess import check_output, CalledProcessError
 
 ZFS_COMMAND="zfs"
 REMOTE_COMMAND="ssh"
+REMOTE_COMMAND_PARAMS="-c"
+REMOTE_COMMAND_PARAMS2="arcfour"
 GLOBAL_PARAMETERS="-H"
 DRY="echo"
 
