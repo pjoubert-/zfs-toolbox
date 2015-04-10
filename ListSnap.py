@@ -68,9 +68,10 @@ def transfer_datasets(host_1, host_2, host_1_path, host_2_path, datasets):
 
 def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots):
     # snapshot is a dict of datasets, each element key is a dataset containing a list of snapshot
-    for dataset in snapshots:
+    for dataset in sorted(snapshots):
         print "sending snapshots of %s" % dataset
         ZfsFunc.send_snapshot(host_1, host_2, host_1_path, host_2_path + dataset.split(host_1_path)[1], dataset, snapshots[dataset])
+
 
 
 """
@@ -94,6 +95,7 @@ def sync_snapshots(host1, source_path, host2, target_path):
     transfer_snasphots(host1, host2, source_path, target_path, new_snapshots)
     totaltime = time.time() - tps
     print "total duration: %d seconds" % int(totaltime)
+
 
 
 def get_stats(host, dataset):
