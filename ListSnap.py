@@ -53,8 +53,8 @@ def find_last_common_snapshot(host_list_1, host_list_2, host_1_path, host_2_path
                     snapshot_not_in_host_list_2[dataset].append(snap)
                 last_snapshot = snap
 
-    print "snapshots to sync: %d" % len(snapshot_not_in_host_list_2)
-    print "datasets to sync: %d" % len(dataset_not_in_host_list_2)
+    print "snapshots to synchronize : %d" % len(snapshot_not_in_host_list_2)
+    print "new datasets to synchronize : %d" % len(dataset_not_in_host_list_2)
 
     return dataset_not_in_host_list_2, snapshot_not_in_host_list_2
 
@@ -79,23 +79,21 @@ higher level functions
 def sync_snapshots(host1, source_path, host2, target_path):
     tps = time.time()
     host_1_list = get_snapshots(host1, source_path)
-    print "%s : %d datasets" % (host1, len(host_1_list['values']))
+    print "On %s : %d datasets" % (host1, len(host_1_list['values']))
     host_2_list = get_snapshots(host2, target_path)
-    print "%s : %d datasets" % (host2, len(host_2_list['values']))
+    print "On %s : %d datasets" % (host2, len(host_2_list['values']))
     totaltime = time.time() - tps
-    print "duration %d" % int(totaltime)
 
     tps = time.time()
     new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, source_path, target_path)
     totaltime = time.time() - tps
     tps = time.time()
-    print "duration %d" % int(totaltime)
 
     print "datasets to send: %d" % len(new_datasets)
     transfer_datasets(host1, host2, source_path, target_path, new_datasets)
     transfer_snasphots(host1, host2, source_path, target_path, new_snapshots)
     totaltime = time.time() - tps
-    print "duration %d" % int(totaltime)
+    print "total duration: %d seconds" % int(totaltime)
 
 
 def get_stats(host, dataset):

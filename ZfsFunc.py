@@ -5,7 +5,7 @@ from subprocess import check_output, CalledProcessError
 ZFS_COMMAND="zfs"
 REMOTE_COMMAND="ssh"
 REMOTE_COMMAND_PARAMS="-c"
-REMOTE_COMMAND_PARAMS2="arcfour"
+REMOTE_COMMAND_PARAMS2="arcfour,blowfish-cbc"
 GLOBAL_PARAMETERS="-H"
 DRY="echo"
 
@@ -38,13 +38,18 @@ def list(host, dataset, type='dataset', recursive=False, properties=['name']):
     return ordered_list
 
 def send_dataset(host1, host2, source_set, target_path, snapshot):
-    command = (REMOTE_COMMAND, host1, "%s send -RP %s@%s | %s %s %s recv -vF %s" % ( \
-                        ZFS_COMMAND, source_set, snapshot, REMOTE_COMMAND, host2, ZFS_COMMAND, target_path))
+    command = (REMOTE_COMMAND, host1, "%s send -RP %s@%s | %s %s %s %s %s recv -vF %s" % ( \
+                        ZFS_COMMAND, source_set, snapshot, REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
+                        REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND, target_path))
     print "sending dataset %s@%s" % (source_set, snapshot)
+    keep_command = (REMOTE_COMMAND, host2, ZFS_COMMAND, 'hold', 'keep', snapshot)
     try:
         for line in check_output(command).split('\n'):
-           if line !="":
-               print line
+            if line != "":
+                print line
+#        for line in check_output(keep_command).split('\n'):
+#            if line != "":
+#                print line
     except CalledProcessError:
         print "error sending dataset %s" % source_set
         print "command = %s" % str(command)
@@ -54,14 +59,21 @@ def send_dataset(host1, host2, source_set, target_path, snapshot):
 
 
 def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
-    command = (REMOTE_COMMAND, host1, "%s send -I %s %s@%s | %s %s %s recv -vF %s" % \
-                        (ZFS_COMMAND, snapshots[0], dataset, snapshots[-1], REMOTE_COMMAND, host2, ZFS_COMMAND,
+    command = (REMOTE_COMMAND, host1, "%s send -I %s %s@%s | %s %s %s %s %s recv -vF %s" % \
+                        (ZFS_COMMAND, snapshots[0], dataset, snapshots[-1], REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
+                            REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND,
                             target_path))
-    print command
     try:
         print "sending snapshots %s to %s@%s" % (snapshots[0], dataset, snapshots[-1])
         for line in check_output(command).split('\n'):
             print line
     except CalledProcessError:
-        print "send snapshots failed"
+        print "failure sending snapshots"
     return
+
+# to be used ?
+def clean_holds(host, dataset, hold):
+    snaps = list(host, dataset, recursive=True, properties=['name', 'userrefs'])
+    for snapshot in snaps['values']:
+        if int(snapshot[1]) > 0:
+            command = (REMOTE_COMMAND, host, "%s holds %s" % (ZFS_COMMAND, snapshot))
