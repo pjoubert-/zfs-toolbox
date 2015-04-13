@@ -84,12 +84,8 @@ def sync_snapshots(args):
     print "On %s : %d datasets" % (args.host1, len(host_1_list['values']))
     host_2_list = get_snapshots(args.host2, args.destination)
     print "On %s : %d datasets" % (args.host2, len(host_2_list['values']))
-    totaltime = time.time() - tps
 
-    tps = time.time()
     new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, args.source, args.destination)
-    totaltime = time.time() - tps
-    tps = time.time()
 
     print "datasets to update: %d" % len(new_datasets)
     transfer_datasets(args.host1, args.host2, args.source, args.destination, new_datasets)
@@ -99,10 +95,10 @@ def sync_snapshots(args):
 
 
 
-def get_stats(host, dataset):
+def get_stats(args):
     """Computes statistics against the host"""
 
-    datasets = get_snapshots(host, dataset)
+    datasets = get_snapshots(args.host, args.dataset)
     ndatasets = len(datasets['values'])
     nsnapshot = reduce(lambda x, y: x + y, [len(snapshots) for snapshots in datasets['values']])
     print nsnapshot
