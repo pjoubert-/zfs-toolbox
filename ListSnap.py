@@ -90,7 +90,7 @@ def sync_snapshots(host1, source_path, host2, target_path):
     totaltime = time.time() - tps
     tps = time.time()
 
-    print "datasets to send: %d" % len(new_datasets)
+    print "datasets to update: %d" % len(new_datasets)
     transfer_datasets(host1, host2, source_path, target_path, new_datasets)
     transfer_snasphots(host1, host2, source_path, target_path, new_snapshots)
     totaltime = time.time() - tps
