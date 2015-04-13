@@ -77,22 +77,23 @@ def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots):
 """
 higher level functions
 """
-def sync_snapshots(host1, source_path, host2, target_path):
+def sync_snapshots(args):
+    # args.host1, args.source, args.host2, args.destination
     tps = time.time()
-    host_1_list = get_snapshots(host1, source_path)
-    print "On %s : %d datasets" % (host1, len(host_1_list['values']))
-    host_2_list = get_snapshots(host2, target_path)
-    print "On %s : %d datasets" % (host2, len(host_2_list['values']))
+    host_1_list = get_snapshots(args.host1, args.source)
+    print "On %s : %d datasets" % (args.host1, len(host_1_list['values']))
+    host_2_list = get_snapshots(args.host2, args.destination)
+    print "On %s : %d datasets" % (args.host2, len(host_2_list['values']))
     totaltime = time.time() - tps
 
     tps = time.time()
-    new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, source_path, target_path)
+    new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, args.source, args.destination)
     totaltime = time.time() - tps
     tps = time.time()
 
     print "datasets to update: %d" % len(new_datasets)
-    transfer_datasets(host1, host2, source_path, target_path, new_datasets)
-    transfer_snasphots(host1, host2, source_path, target_path, new_snapshots)
+    transfer_datasets(args.host1, args.host2, args.source, args.destination, new_datasets)
+    transfer_snasphots(args.host1, args.host2, args.source, args.destination, new_snapshots)
     totaltime = time.time() - tps
     print "total duration: %d seconds" % int(totaltime)
 
@@ -109,17 +110,20 @@ def get_stats(host, dataset):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", help="action. Available actions: sync")
-    parser.add_argument("host1",help="host to replictate from")
-    parser.add_argument("source_dataset", help="origin dataset. Replication is recursive")
-    parser.add_argument("host2", help="host to replicate to")
-    parser.add_argument("target_dataset", help="destination dataset. Replication is recursive")
+    subparsers = parser.add_subparsers(help="Help for subcommand")
+    parser_sync = subparsers.add_parser('sync', help="Synchronize snapshots between two hosts")
+    parser_sync.set_defaults(func=sync_snapshots)
+    parser_sync.add_argument("host1", help="source host")
+    parser_sync.add_argument("source", help="source dataset")
+    parser_sync.add_argument("host2", help="target host")
+    parser_sync.add_argument("destination", help="destination dataset")
+    parser_stat = subparsers.add_parser('stats', help='statistics')
+    parser_stat.set_defaults(func=get_stats)
+    parser_stat.add_argument("host", help="statistics for host")
+    parser_stat.add_argument("dataset", help="target dataset")
     try:
         args = parser.parse_args()
-        if args.action == "sync":
-            sync_snapshots(args.host1, args.source_dataset, args.host2, args.target_dataset)
-        if args.action == "stats":
-            get_stats(args.host1, args.source_dataset)
+        args.func(args)
 
     except argparse.ArgumentError:
         print str(e)
