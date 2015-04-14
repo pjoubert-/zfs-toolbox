@@ -72,8 +72,21 @@ def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
     return
 
 # to be used ?
-def clean_holds(host, dataset, hold):
-    snaps = list(host, dataset, recursive=True, properties=['name', 'userrefs'])
-    for snapshot in snaps['values']:
-        if int(snapshot[1]) > 0:
-            command = (REMOTE_COMMAND, host, "%s holds %s" % (ZFS_COMMAND, snapshot))
+def clean(host, root_dataset): #, hold):
+    datasets = list(host, root_dataset, type="snapshot", recursive=True, properties=['name', 'userrefs'])
+    for dataset in datasets['values']:
+        for snapshot in datasets['values'][dataset]:
+            refs = datasets['values'][dataset][snapshot][0]
+            if int(refs) > 0:
+                print "%s : %d" % (str(snapshot), int(refs))
+            command = (REMOTE_COMMAND, host, "%s holds %s %s@%s" % (ZFS_COMMAND, GLOBAL_PARAMETERS, dataset, snapshot))
+            try:
+                for line in check_output(command).split('\n'):
+                    if line != "":
+                        result = line.split()
+                        snapname = result.pop(0)
+                        tag = result.pop(0)
+                        date = ' '.join(result)
+                        print "%s: tag = %s, date = %s" % (snapname, tag, date)
+            except CalledProcessError:
+                return "list failed"

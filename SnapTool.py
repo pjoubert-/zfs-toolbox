@@ -94,8 +94,6 @@ def sync_snapshots(args):
     totaltime = time.time() - tps
     print "total duration: %d seconds" % int(totaltime)
 
-
-
 def get_stats(args):
     """Computes statistics against the host"""
 
@@ -104,20 +102,29 @@ def get_stats(args):
     nsnapshot = reduce(lambda x, y: x + y, [len(snapshots) for snapshots in datasets['values']])
     print "Snapshots in %s:%s : %s" % (args.host, args.dataset,nsnapshot)
 
+def clean_holds(args):
+    ZfsFunc.clean(args.host, args.dataset)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help="Help for subcommand")
+
     parser_sync = subparsers.add_parser('sync', help="Synchronize snapshots between two hosts")
     parser_sync.set_defaults(func=sync_snapshots)
     parser_sync.add_argument("host1", help="source host")
     parser_sync.add_argument("source", help="source dataset")
     parser_sync.add_argument("host2", help="target host")
     parser_sync.add_argument("destination", help="destination dataset")
+
     parser_stat = subparsers.add_parser('stats', help='statistics')
     parser_stat.set_defaults(func=get_stats)
     parser_stat.add_argument("host", help="statistics for host")
     parser_stat.add_argument("dataset", help="target dataset")
+
+    parser_hold = subparsers.add_parser('clean_holds', help="clean holds for dataset")
+    parser_hold.set_defaults(func=clean_holds)
+    parser_hold.add_argument("host", help="host to clean")
+    parser_hold.add_argument("dataset", help="dataset to check")
     try:
         args = parser.parse_args()
         args.func(args)
