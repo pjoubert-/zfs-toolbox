@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Some useful functions for snapshot management
 #
 # sync_snapshots: sync recursively datasets and snapshots from host1/dataset1 to host2/dataset2
@@ -101,7 +102,7 @@ def get_stats(args):
     datasets = get_snapshots(args.host, args.dataset)
     ndatasets = len(datasets['values'])
     nsnapshot = reduce(lambda x, y: x + y, [len(snapshots) for snapshots in datasets['values']])
-    print nsnapshot
+    print "Snapshots in %s:%s : %s" % (args.host, args.dataset,nsnapshot)
 
 
 if __name__ == "__main__":
