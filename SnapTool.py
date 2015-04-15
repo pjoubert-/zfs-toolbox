@@ -88,7 +88,6 @@ def sync_snapshots(args):
 
     new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, args.source, args.destination)
 
-    print "datasets to update: %d" % len(new_datasets)
     transfer_datasets(args.host1, args.host2, args.source, args.destination, new_datasets)
     transfer_snasphots(args.host1, args.host2, args.source, args.destination, new_snapshots)
     totaltime = time.time() - tps
@@ -103,7 +102,7 @@ def get_stats(args):
     print "Snapshots in %s:%s : %s" % (args.host, args.dataset,nsnapshot)
 
 def clean_holds(args):
-    ZfsFunc.clean(args.host, args.dataset)
+    ZfsFunc.clean(args.host, args.dataset, args.hold)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -125,6 +124,7 @@ if __name__ == "__main__":
     parser_hold.set_defaults(func=clean_holds)
     parser_hold.add_argument("host", help="host to clean")
     parser_hold.add_argument("dataset", help="dataset to check")
+    parser_hold.add_argument("hold", help="hold to remove")
     try:
         args = parser.parse_args()
         args.func(args)
