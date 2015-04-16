@@ -74,7 +74,7 @@ def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
 # to be used ?
 def clean(host, root_dataset, hold):
     datasets = list(host, root_dataset, type="snapshot", recursive=True, properties=['name', 'userrefs'])
-    for dataset in datasets['values']:
+    for dataset in sorted(datasets['values']):
         for snapshot in sorted(datasets['values'][dataset]):
             refs = datasets['values'][dataset][snapshot][0]
             if int(refs) > 0:
