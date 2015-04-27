@@ -38,9 +38,11 @@ def find_last_common_snapshot(host_list_1, host_list_2, host_1_path, host_2_path
 
         # dataset_not_in_host_list_2 tracks new datasets
         if not host_list_2['values'].has_key(dataset_h2):
-            # we need the last available snapshot
+
+            # we need the first and the last available snapshot
+            first_key = sorted(host_list_1['values'][dataset].keys())[0]
             last_key = sorted(host_list_1['values'][dataset].keys())[-1]
-            dataset_not_in_host_list_2.append((dataset, last_key))
+            dataset_not_in_host_list_2.append((dataset, first_key, last_key))
         else:
             last_snapshot = ""
             for snap in sorted(host1_snaps):
@@ -65,7 +67,7 @@ def iter_snapshots(dataset):
 def transfer_datasets(host_1, host_2, host_1_path, host_2_path, datasets):
     for dataset in datasets:
         print "sending %s @ %s" % (dataset[0], dataset[1])
-        ZfsFunc.send_dataset(host_1, host_2, dataset[0], host_2_path + dataset[0].split(host_1_path)[1], dataset[1])
+        ZfsFunc.send_dataset(host_1, host_2, dataset[0], host_2_path + dataset[0].split(host_1_path)[1], dataset[1], dataset[2])
 
 def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots):
     # snapshot is a dict of datasets, each element key is a dataset containing a list of snapshot

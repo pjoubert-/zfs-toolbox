@@ -37,12 +37,12 @@ def list(host, dataset, type='dataset', recursive=False, properties=['name']):
         return "list failed"
     return ordered_list
 
-def send_dataset(host1, host2, source_set, target_path, snapshot):
-    command = (REMOTE_COMMAND, host1, "%s send -RP %s@%s | %s %s %s %s %s recv -vF %s" % ( \
-                        ZFS_COMMAND, source_set, snapshot, REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
+def send_dataset(host1, host2, source_set, target_path, first, last):
+    command = (REMOTE_COMMAND, host1, "%s send -P -I %s %s@%s | %s %s %s %s %s recv -vF %s" % ( \
+                        ZFS_COMMAND, first, source_set, last, REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
                         REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND, target_path))
-    print "sending dataset %s@%s" % (source_set, snapshot)
-    keep_command = (REMOTE_COMMAND, host2, ZFS_COMMAND, 'hold', 'keep', snapshot)
+    print "sending dataset %s from %s to %s" % (source_set, first, last)
+    #keep_command = (REMOTE_COMMAND, host2, ZFS_COMMAND, 'hold', 'keep', snapshot)
     try:
         for line in check_output(command).split('\n'):
             if line != "":
