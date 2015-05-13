@@ -51,9 +51,9 @@ def send_dataset(host1, host2, source_set, target_path, first, last):
 #            if line != "":
 #                print line
     except CalledProcessError:
-        print "error sending dataset %s" % source_set
+        print "*error sending dataset %s*" % source_set
         print "command = %s" % str(command)
-        return "send dataset failed"
+        return "send dataset *failed*"
     return True
 
 
@@ -68,7 +68,7 @@ def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
         for line in check_output(command).split('\n'):
             print line
     except CalledProcessError:
-        print "failure sending snapshots"
+        print "*failure* sending snapshots"
     return
 
 # to be used ?
