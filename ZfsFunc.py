@@ -34,12 +34,12 @@ def list(host, dataset, type='dataset', recursive=False, properties=['name']):
                 ordered_list['values'][dataset][snapshot] = prop_values
 
     except CalledProcessError:
-        return "list failed"
+        return ordered_list
     return ordered_list
 
 def send_dataset(host1, host2, source_set, target_path, first, last):
-    command = (REMOTE_COMMAND, host1, "%s send -P -I %s %s@%s | %s %s %s %s %s recv -vF %s" % ( \
-                        ZFS_COMMAND, first, source_set, last, REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
+    command = (REMOTE_COMMAND, host1, "%s send -R %s@%s | %s %s %s %s %s recv -vF %s" % ( \
+                        ZFS_COMMAND, source_set, last, REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
                         REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND, target_path))
     print "sending dataset %s from %s to %s" % (source_set, first, last)
     #keep_command = (REMOTE_COMMAND, host2, ZFS_COMMAND, 'hold', 'keep', snapshot)
@@ -95,4 +95,4 @@ def clean(host, root_dataset, hold):
                                     print line
                         print "%s: tag = %s, date = %s" % (snapname, tag, date)
             except CalledProcessError:
-                return "list failed"
+                 return "list failed"
