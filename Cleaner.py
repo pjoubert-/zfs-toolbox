@@ -104,21 +104,3 @@ class Dataset(object):
         """
         pass
 
-def track_removable(snapshots, retention):
-# Manage retention get a set of snapshot and retention, returns list of snapshots to remove
-    buckets = Buckets(retention)
-    
-    # fill snapshots in buckets
-    for snapshot in snapshots:
-        snap = Snapshot(snapshot[name], snapshot[name])
-        bucket
-        if is_in_bucket(snapshot):
-            to_keep.add(snapshot)
-        else:
-            to_delete.add(snapshot)
-
-    # remove out of retention snapshots
-
-    for bucket in buckets:
-        pass
-
