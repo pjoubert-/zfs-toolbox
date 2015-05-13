@@ -9,3 +9,6 @@ Fetches snapshots from host1 and host2, compare them, and send difference to hos
 for existing datasets
 
 * stats -> lists the number of snapshots
+
+* clean_snaps -> handles snapshot retention with buckets
+  implemention not finished
