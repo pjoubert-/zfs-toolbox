@@ -8,6 +8,7 @@
 import ZfsFunc
 import time
 import argparse
+import Cleaner
 
 
 """
@@ -106,6 +107,13 @@ def get_stats(args):
 def clean_holds(args):
     ZfsFunc.clean(args.host, args.dataset, args.hold)
 
+def clean_snaps(args):
+    datasets = get_snapshots(args.host, args.dataset)
+    for dataset in datasets["values"]:
+        snapshots = datasets["values"][dataset]
+        data = Cleaner.Dataset(dataset, args.retention)
+        data.fill_buckets(snapshots)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help="Help for subcommand")
@@ -127,6 +135,12 @@ if __name__ == "__main__":
     parser_hold.add_argument("host", help="host to clean")
     parser_hold.add_argument("dataset", help="dataset to check")
     parser_hold.add_argument("hold", help="hold to remove")
+
+    parser_snapclean = subparsers.add_parser('clean_snaps', help="clean snapshots bucket fashion way")
+    parser_snapclean.set_defaults(func=clean_snaps)
+    parser_snapclean.add_argument("host", help="host to clean")
+    parser_snapclean.add_argument("dataset", help="dataset to clean")
+    parser_snapclean.add_argument("retention", help="retention schema")
     try:
         args = parser.parse_args()
         args.func(args)
