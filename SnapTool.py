@@ -55,6 +55,10 @@ def find_last_common_snapshot(host_list_1, host_list_2, host_1_path, host_2_path
                         # add the snapshot before to be able to send incremental data !
                         snapshot_not_in_host_list_2[dataset].append(last_snapshot)
                     snapshot_not_in_host_list_2[dataset].append(snap)
+                else:
+                    # if snapshot exists, just erase the key
+                    if snapshot_not_in_host_list_2.has_key(dataset):
+                        del snapshot_not_in_host_list_2[dataset]
                 last_snapshot = snap
 
     print "snapshots to synchronize : %d" % len(snapshot_not_in_host_list_2)
@@ -112,7 +116,8 @@ def clean_snaps(args):
     for dataset in datasets["values"]:
         snapshots = datasets["values"][dataset]
         data = Cleaner.Dataset(dataset, args.retention)
-        data.fill_buckets(snapshots)
+        to_keep, to_delete = data.fill_buckets(snapshots)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -141,6 +146,8 @@ if __name__ == "__main__":
     parser_snapclean.add_argument("host", help="host to clean")
     parser_snapclean.add_argument("dataset", help="dataset to clean")
     parser_snapclean.add_argument("retention", help="retention schema")
+
+   # parser_snapclean.add_argument()
     try:
         args = parser.parse_args()
         args.func(args)
