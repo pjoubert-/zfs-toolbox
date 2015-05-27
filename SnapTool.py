@@ -115,8 +115,8 @@ def clean_snaps(args):
     datasets = get_snapshots(args.host, args.dataset)
     for dataset in datasets["values"]:
         snapshots = datasets["values"][dataset]
-        data = Cleaner.Dataset(dataset, args.retention)
-        to_keep, to_delete = data.fill_buckets(snapshots)
+        data = Cleaner.Dataset(dataset, args.retention, args.firstday)
+        to_keep, to_delete = data.fill_buckets(snapshots, )
 
 
 if __name__ == "__main__":
@@ -147,7 +147,8 @@ if __name__ == "__main__":
     parser_snapclean.add_argument("dataset", help="dataset to clean")
     parser_snapclean.add_argument("retention", help="retention schema")
 
-   # parser_snapclean.add_argument()
+    parser_snapclean.add_argument("firstday", type=int, help="first days of the month to keep")
+
     try:
         args = parser.parse_args()
         args.func(args)

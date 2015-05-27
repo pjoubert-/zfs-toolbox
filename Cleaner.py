@@ -1,6 +1,7 @@
 
 import re
 from datetime import datetime
+import dateutil.relativedelta
 
 class Buckets(dict):
     # default timeformat:
@@ -45,10 +46,11 @@ class Dataset(object):
     cleaned up pfollowing Khendrick algorithm:
     https://github.com/khenderick/zfs-snap-manager
     """
-    def __init__(self, dataset, retention, timeformat='GMT-%Y.%m.%d-%H.%M.%S'):
+    def __init__(self, dataset, retention, firstday=0, timeformat='GMT-%Y.%m.%d-%H.%M.%S'):
         self.dataset = dataset
         self.buckets = Buckets(retention)
         self.now = datetime.now()
+        self.firstday = firstday
         self.timeformat = timeformat
 
 
@@ -56,14 +58,30 @@ class Dataset(object):
         """
         walk snapshots and push them into their respective buckets, eliminating
         """
+## TODO: keep first snapshot of the month (if configured) in order to be able to store the monthly backup
+##       test that datetime object.day = 1 and days < 32
         for snapshot in sorted(dataset):
-            days = (self.now - datetime.strptime(snapshot, self.timeformat)).days
-            possible_keys = []
-            for age in self.buckets:
-                if days <= age:
-                    possible_keys.append(age)
-            if possible_keys:
-                self.buckets[min(possible_keys)].append(snapshot)
+            try:
+                days = (self.now - datetime.strptime(snapshot, self.timeformat)).days
+                possible_keys = []
+                for age in self.buckets:
+                    if days <= age:
+                        possible_keys.append(age)
+                if possible_keys:
+                    self.buckets[min(possible_keys)].append(snapshot)
+            except e:
+                pass
+ 
+        first_days = []
+
+        for i in range(self.firstday):
+            d = datetime.strptime("%d-%d-%d" %
+                        (self.now.year, self.now.month, 1), "%Y-%m-%d")
+            date = d - dateutil.relativedelta.relativedelta(months=i)
+            print date.strftime("%Y-%m-%d")
+            age = self.now - date
+            first_days.append(age.days)
+        print str(first_days)
 
         to_keep = {}
         to_delete = {}
@@ -79,6 +97,9 @@ class Dataset(object):
                     if oldest is None:
                         oldest = snapshot
                         oldest_age = age
+                    elif age in first_days:
+                        print "first day of the month !"
+                        print age
                     elif age > oldest_age:
                         oldest = snapshot
                         oldest_age = age
@@ -91,6 +112,7 @@ class Dataset(object):
         for key in sorted(to_delete):
             print key
             print to_delete[key]
+        return to_keep, to_delete
 
     def triage_buckets(self):
         """
