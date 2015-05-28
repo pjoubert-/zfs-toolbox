@@ -2,6 +2,7 @@
 import re
 from datetime import datetime
 import dateutil.relativedelta
+import pprint
 
 class Buckets(dict):
     # default timeformat:
@@ -60,6 +61,7 @@ class Dataset(object):
         """
 ## TODO: keep first snapshot of the month (if configured) in order to be able to store the monthly backup
 ##       test that datetime object.day = 1 and days < 32
+        end_of_life_snapshots = {}
         for snapshot in sorted(dataset):
             try:
                 days = (self.now - datetime.strptime(snapshot, self.timeformat)).days
@@ -69,6 +71,8 @@ class Dataset(object):
                         possible_keys.append(age)
                 if possible_keys:
                     self.buckets[min(possible_keys)].append(snapshot)
+                else:
+                    end_of_life_snapshots[days] = end_of_life_snapshots.get(days, []) + [snapshot]
             except e:
                 pass
  
@@ -76,30 +80,28 @@ class Dataset(object):
 
         for i in range(self.firstday):
             d = datetime.strptime("%d-%d-%d" %
-                        (self.now.year, self.now.month, 1), "%Y-%m-%d")
+                        # trick is to use the second day of the month. Don't get it for the moment
+                        (self.now.year, self.now.month, 2), "%Y-%m-%d")
             date = d - dateutil.relativedelta.relativedelta(months=i)
-            print date.strftime("%Y-%m-%d")
             age = self.now - date
             first_days.append(age.days)
-        print str(first_days)
 
         to_keep = {}
         to_delete = {}
 
-        for key in self.buckets:
+        for key in sorted(self.buckets):
             oldest = None
             oldest_age = None
             if len(self.buckets[key]) == 1:
                 oldest = self.buckets[key][0]
             else:
-                for snapshot in self.buckets[key]:
+                for snapshot in sorted(self.buckets[key]):
                     age = (self.now - datetime.strptime(snapshot, self.timeformat)).days
                     if oldest is None:
                         oldest = snapshot
                         oldest_age = age
                     elif age in first_days:
-                        print "first day of the month !"
-                        print age
+                        pass
                     elif age > oldest_age:
                         oldest = snapshot
                         oldest_age = age
@@ -107,11 +109,7 @@ class Dataset(object):
                         to_delete[key] = to_delete.get(key, []) + [snapshot]
             to_keep[key] = oldest
             to_delete[key] = to_delete.get(key, [])
-        for key in sorted(to_keep):
-            print to_keep[key]
-        for key in sorted(to_delete):
-            print key
-            print to_delete[key]
+        to_delete.update(end_of_life_snapshots)
         return to_keep, to_delete
 
     def triage_buckets(self):
@@ -120,7 +118,7 @@ class Dataset(object):
         """
         pass
 
-    def clean_snapshots(self):
+    def clean_snapshots(self, dataset, snapshots):
         """
         Remove cleanable snapshots from buckets
         """

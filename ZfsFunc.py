@@ -71,6 +71,16 @@ def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
         print "*failure* sending snapshots"
     return
 
+def remove_snapshots(host, dataset, to_delete):
+    #print str(to_delete)
+    for bucket in to_delete:
+        for snapshot in to_delete[bucket]:
+            snap = "%s@%s" % (dataset, snapshot)
+            command = (REMOTE_COMMAND, host, ZFS_COMMAND, "destroy -d %s" % snap)
+            print command
+
+
+
 # to be used ?
 def clean(host, root_dataset, hold):
     datasets = list(host, root_dataset, type="snapshot", recursive=True, properties=['name', 'userrefs'])

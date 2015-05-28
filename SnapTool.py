@@ -113,10 +113,18 @@ def clean_holds(args):
 
 def clean_snaps(args):
     datasets = get_snapshots(args.host, args.dataset)
-    for dataset in datasets["values"]:
+    count = 0
+    for dataset in sorted(datasets["values"]):
         snapshots = datasets["values"][dataset]
         data = Cleaner.Dataset(dataset, args.retention, args.firstday)
-        to_keep, to_delete = data.fill_buckets(snapshots, )
+        to_keep, to_delete = data.fill_buckets(snapshots,)
+        for snap in to_keep:
+            if to_keep[snap] is not None:
+                count += 1
+        ZfsFunc.remove_snapshots(args.host, dataset, to_delete)
+
+    print count
+
 
 
 if __name__ == "__main__":
