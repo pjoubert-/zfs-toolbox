@@ -9,7 +9,8 @@ import ZfsFunc
 import time
 import argparse
 import Cleaner
-
+import yaml
+import pprint
 
 """
 snapshots functions
@@ -112,6 +113,38 @@ def clean_holds(args):
     ZfsFunc.clean(args.host, args.dataset, args.hold)
 
 def clean_snaps(args):
+    try:
+        conf = yaml.load(open("retention.conf"))
+    except yaml.YAMLError, exc :
+        print "error in conf :", exc
+        conf = None
+    if conf is not None:
+        p = pprint.PrettyPrinter()
+        deleted = 0
+        count = 0
+        for host in sorted(conf):
+            for volume in sorted(conf[host]):
+                print "For %s at %s " % (volume, host)
+                if not conf[host][volume].has_key('first'):
+                    first = 0
+                else:
+                    first = conf[host][volume]['first']
+                datasets = get_snapshots(host, volume)
+                for dataset in sorted(datasets["values"]):
+                    snapshots = datasets["values"][dataset]
+                    data = Cleaner.Dataset(dataset,
+                                conf[host][volume]['retention'],
+                                first)
+                    to_keep, to_delete = data.fill_buckets(snapshots,)
+                    for snap in to_keep:
+                        if to_keep[snap] is not None:
+                            count += 1
+                    deleted += ZfsFunc.remove_snapshots(args.host, dataset, to_delete)
+                print "snapshots kept: %d" % count
+                print "snapshots cleaned: %d" % deleted
+        return
+
+
     datasets = get_snapshots(args.host, args.dataset)
     count = 0
     for dataset in sorted(datasets["values"]):
@@ -121,7 +154,7 @@ def clean_snaps(args):
         for snap in to_keep:
             if to_keep[snap] is not None:
                 count += 1
-        ZfsFunc.remove_snapshots(args.host, dataset, to_delete)
+        #ZfsFunc.remove_snapshots(args.host, dataset, to_delete)
 
     print count
 

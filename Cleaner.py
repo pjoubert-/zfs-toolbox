@@ -73,8 +73,9 @@ class Dataset(object):
                     self.buckets[min(possible_keys)].append(snapshot)
                 else:
                     end_of_life_snapshots[days] = end_of_life_snapshots.get(days, []) + [snapshot]
-            except e:
-                pass
+            except Exception, exc:
+                print exc
+                return
  
         first_days = []
 
