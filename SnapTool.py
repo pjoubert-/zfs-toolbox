@@ -139,7 +139,7 @@ def clean_snaps(args):
                     for snap in to_keep:
                         if to_keep[snap] is not None:
                             count += 1
-                    deleted += ZfsFunc.remove_snapshots(args.host, dataset, to_delete)
+                    deleted += ZfsFunc.remove_snapshots(host, dataset, to_delete)
                 print "snapshots kept: %d" % count
                 print "snapshots cleaned: %d" % deleted
         return

@@ -81,8 +81,8 @@ def remove_snapshots(host, dataset, to_delete):
             try:
                 print "delete %s" % snap
                 deleted += 1
-                #for line in check_output(command).split('\n'):
-                    #print line
+                for line in check_output(command).split('\n'):
+                    print line
             except CalledProcessError:
                 print "failure deleting snapshot"
     return deleted
