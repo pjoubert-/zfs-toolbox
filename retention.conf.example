@@ -1,0 +1,10 @@
+# example retention with comments
+
+snapserver: # Here is the server with the snapshots
+    backup/homes/user: # this is the dataset to clean up
+        retention: 7d52w11m0y # this is the retention scheme
+        first: 2 # keeps 2 occurences of the first day of the month
+    backup/rawdata/xp: # another dataset
+        retention: 2d0w0m0y # another retention
+        # first parameter may be skipped
+
