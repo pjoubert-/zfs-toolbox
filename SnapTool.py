@@ -114,7 +114,7 @@ def clean_holds(args):
 
 def clean_snaps(args):
     try:
-        conf = yaml.load(open("retention.conf"))
+        conf = yaml.load(open(args.file))
     except yaml.YAMLError, exc :
         print "error in conf :", exc
         conf = None
@@ -169,6 +169,7 @@ if __name__ == "__main__":
 
     parser_snapclean = subparsers.add_parser('clean_snaps', help="clean snapshots bucket fashion way")
     parser_snapclean.set_defaults(func=clean_snaps)
+    parser_snapclean.add_argument('file')
 
     try:
         args = parser.parse_args()
