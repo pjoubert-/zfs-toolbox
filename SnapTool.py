@@ -145,21 +145,6 @@ def clean_snaps(args):
         return
 
 
-    datasets = get_snapshots(args.host, args.dataset)
-    count = 0
-    for dataset in sorted(datasets["values"]):
-        snapshots = datasets["values"][dataset]
-        data = Cleaner.Dataset(dataset, args.retention, args.firstday)
-        to_keep, to_delete = data.fill_buckets(snapshots,)
-        for snap in to_keep:
-            if to_keep[snap] is not None:
-                count += 1
-        #ZfsFunc.remove_snapshots(args.host, dataset, to_delete)
-
-    print count
-
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help="Help for subcommand")
@@ -184,11 +169,6 @@ if __name__ == "__main__":
 
     parser_snapclean = subparsers.add_parser('clean_snaps', help="clean snapshots bucket fashion way")
     parser_snapclean.set_defaults(func=clean_snaps)
-    parser_snapclean.add_argument("host", help="host to clean")
-    parser_snapclean.add_argument("dataset", help="dataset to clean")
-    parser_snapclean.add_argument("retention", help="retention schema")
-
-    parser_snapclean.add_argument("firstday", type=int, help="first days of the month to keep")
 
     try:
         args = parser.parse_args()
