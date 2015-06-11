@@ -89,17 +89,28 @@ higher level functions
 def sync_snapshots(args):
     # args.host1, args.source, args.host2, args.destination
     tps = time.time()
-    host_1_list = get_snapshots(args.host1, args.source)
-    print "On %s : %d datasets" % (args.host1, len(host_1_list['values']))
-    host_2_list = get_snapshots(args.host2, args.destination)
-    print "On %s : %d datasets" % (args.host2, len(host_2_list['values']))
+    try:
+        conf = yaml.load(open(args.file))
+    except yaml.YAMLError, exc:
+        print "error in conf :", exc
+        return
+    for volume in sorted(conf):
+        source_host = conf[volume]["source"]["host"]
+        source_dataset = conf[volume]["source"]["dataset"]
+        target_host = conf[volume]["destination"]["host"]
+        target_dataset = conf[volume]["destination"]["dataset"]
+        host_1_list = get_snapshots(source_host, source_dataset)
+        host_2_list = get_snapshots(target_host, target_dataset)
 
-    new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, args.source, args.destination)
+        print "On %s : %d datasets" % (source_host, len(host_1_list['values']))
+        print "On %s : %d datasets" % (target_host, len(host_2_list['values']))
 
-    transfer_datasets(args.host1, args.host2, args.source, args.destination, new_datasets)
-    transfer_snasphots(args.host1, args.host2, args.source, args.destination, new_snapshots)
-    totaltime = time.time() - tps
-    print "total duration: %d seconds" % int(totaltime)
+        new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, source_dataset, target_dataset)
+
+        transfer_datasets(source_host, target_host, source_dataset, target_dataset, new_datasets)
+        transfer_snasphots(source_host, target_host, source_dataset, target_dataset, new_snapshots)
+        totaltime = time.time() - tps
+        print "total duration: %d seconds" % int(totaltime)
 
 def get_stats(args):
     """Computes statistics against the host"""
@@ -115,35 +126,32 @@ def clean_holds(args):
 def clean_snaps(args):
     try:
         conf = yaml.load(open(args.file))
-    except yaml.YAMLError, exc :
+    except yaml.yamlerror, exc :
         print "error in conf :", exc
-        conf = None
-    if conf is not None:
-        p = pprint.PrettyPrinter()
-        deleted = 0
-        count = 0
-        for host in sorted(conf):
-            for volume in sorted(conf[host]):
-                print "For %s at %s " % (volume, host)
-                if not conf[host][volume].has_key('first'):
-                    first = 0
-                else:
-                    first = conf[host][volume]['first']
-                datasets = get_snapshots(host, volume)
-                for dataset in sorted(datasets["values"]):
-                    snapshots = datasets["values"][dataset]
-                    data = Cleaner.Dataset(dataset,
-                                conf[host][volume]['retention'],
-                                first)
-                    to_keep, to_delete = data.fill_buckets(snapshots,)
-                    for snap in to_keep:
-                        if to_keep[snap] is not None:
-                            count += 1
-                    deleted += ZfsFunc.remove_snapshots(host, dataset, to_delete)
-                print "snapshots kept: %d" % count
-                print "snapshots cleaned: %d" % deleted
         return
-
+    p = pprint.PrettyPrinter()
+    deleted = 0
+    count = 0
+    for host in sorted(conf):
+        for volume in sorted(conf[host]):
+            print "For %s at %s " % (volume, host)
+            if not conf[host][volume].has_key('first'):
+                first = 0
+            else:
+                first = conf[host][volume]['first']
+            datasets = get_snapshots(host, volume)
+            for dataset in sorted(datasets["values"]):
+                snapshots = datasets["values"][dataset]
+                data = Cleaner.Dataset(dataset,
+                            conf[host][volume]['retention'],
+                            first)
+                to_keep, to_delete = data.fill_buckets(snapshots,)
+                for snap in to_keep:
+                    if to_keep[snap] is not None:
+                        count += 1
+                deleted += ZfsFunc.remove_snapshots(host, dataset, to_delete)
+            print "snapshots kept: %d" % count
+            print "snapshots cleaned: %d" % deleted
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -151,10 +159,7 @@ if __name__ == "__main__":
 
     parser_sync = subparsers.add_parser('sync', help="Synchronize snapshots between two hosts")
     parser_sync.set_defaults(func=sync_snapshots)
-    parser_sync.add_argument("host1", help="source host")
-    parser_sync.add_argument("source", help="source dataset")
-    parser_sync.add_argument("host2", help="target host")
-    parser_sync.add_argument("destination", help="destination dataset")
+    parser_sync.add_argument("file", help="Configuration file for synchronization")
 
     parser_stat = subparsers.add_parser('stats', help='statistics')
     parser_stat.set_defaults(func=get_stats)
@@ -169,7 +174,7 @@ if __name__ == "__main__":
 
     parser_snapclean = subparsers.add_parser('clean_snaps', help="clean snapshots bucket fashion way")
     parser_snapclean.set_defaults(func=clean_snaps)
-    parser_snapclean.add_argument('file')
+    parser_snapclean.add_argument('file', help="Configuration file for retention")
 
     try:
         args = parser.parse_args()
