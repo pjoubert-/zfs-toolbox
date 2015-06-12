@@ -70,16 +70,18 @@ def find_last_common_snapshot(host_list_1, host_list_2, host_1_path, host_2_path
 def iter_snapshots(dataset):
     return sorted(dataset)
 
-def transfer_datasets(host_1, host_2, host_1_path, host_2_path, datasets):
+def transfer_datasets(host_1, host_2, host_1_path, host_2_path, datasets, properties=None):
     for dataset in datasets:
         print "sending %s @ %s" % (dataset[0], dataset[1])
-        ZfsFunc.send_dataset(host_1, host_2, dataset[0], host_2_path + dataset[0].split(host_1_path)[1], dataset[1], dataset[2])
+        ZfsFunc.send_dataset(host_1, host_2, dataset[0], host_2_path + dataset[0].split(host_1_path)[1], dataset[1],
+                dataset[2], properties)
 
-def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots):
+def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots, properties=None):
     # snapshot is a dict of datasets, each element key is a dataset containing a list of snapshot
     for dataset in sorted(snapshots):
         print "sending snapshots of %s" % dataset
-        ZfsFunc.send_snapshot(host_1, host_2, host_1_path, host_2_path + dataset.split(host_1_path)[1], dataset, snapshots[dataset])
+        ZfsFunc.send_snapshot(host_1, host_2, host_1_path, host_2_path + dataset.split(host_1_path)[1], dataset,
+                snapshots[dataset], properties)
 
 
 
@@ -99,6 +101,7 @@ def sync_snapshots(args):
         source_dataset = conf[volume]["source"]["dataset"]
         target_host = conf[volume]["destination"]["host"]
         target_dataset = conf[volume]["destination"]["dataset"]
+        properties = conf[volume]["destination"]["properties"]
         host_1_list = get_snapshots(source_host, source_dataset)
         host_2_list = get_snapshots(target_host, target_dataset)
 
@@ -107,8 +110,8 @@ def sync_snapshots(args):
 
         new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, source_dataset, target_dataset)
 
-        transfer_datasets(source_host, target_host, source_dataset, target_dataset, new_datasets)
-        transfer_snasphots(source_host, target_host, source_dataset, target_dataset, new_snapshots)
+        transfer_datasets(source_host, target_host, source_dataset, target_dataset, new_datasets, properties)
+        transfer_snasphots(source_host, target_host, source_dataset, target_dataset, new_snapshots, properties)
         totaltime = time.time() - tps
         print "total duration: %d seconds" % int(totaltime)
 
