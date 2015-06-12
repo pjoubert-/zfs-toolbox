@@ -114,6 +114,7 @@ def sync_snapshots(args):
         transfer_snasphots(source_host, target_host, source_dataset, target_dataset, new_snapshots, properties)
         totaltime = time.time() - tps
         print "total duration: %d seconds" % int(totaltime)
+        print
 
 def get_stats(args):
     """Computes statistics against the host"""
