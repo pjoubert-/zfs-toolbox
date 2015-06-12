@@ -37,10 +37,13 @@ def list(host, dataset, type='dataset', recursive=False, properties=['name']):
         return ordered_list
     return ordered_list
 
-def send_dataset(host1, host2, source_set, target_path, first, last):
-    command = (REMOTE_COMMAND, host1, "%s send -R %s@%s | %s %s %s %s %s recv -vF %s" % ( \
+def send_dataset(host1, host2, source_set, target_path, first, last, properties={}):
+    props = ",".join(["=".join(val) for val in properties.items()])
+    if len(props) > 0:
+        props = "-o " + props
+    command = (REMOTE_COMMAND, host1, "%s send -R %s@%s | %s %s %s %s %s recv -vF %s %s" % ( \
                         ZFS_COMMAND, source_set, last, REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
-                        REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND, target_path))
+                        REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND, props, target_path))
     print "sending dataset %s from %s to %s" % (source_set, first, last)
     #keep_command = (REMOTE_COMMAND, host2, ZFS_COMMAND, 'hold', 'keep', snapshot)
     try:
@@ -58,10 +61,13 @@ def send_dataset(host1, host2, source_set, target_path, first, last):
 
 
 
-def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots):
-    command = (REMOTE_COMMAND, host1, "%s send -I %s %s@%s | %s %s %s %s %s recv -vF %s" % \
+def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots, properties={}):
+    props = ",".join(["=".join(val) for val in properties.items()])
+    if len(props) > 0:
+        props = "-o " + props
+    command = (REMOTE_COMMAND, host1, "%s send -I %s %s@%s | %s %s %s %s %s recv -vF %s %s" % \
                         (ZFS_COMMAND, snapshots[0], dataset, snapshots[-1], REMOTE_COMMAND, REMOTE_COMMAND_PARAMS,
-                            REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND,
+                            REMOTE_COMMAND_PARAMS2, host2, ZFS_COMMAND, props,
                             target_path))
     try:
         print "sending snapshots %s to %s@%s" % (snapshots[0], dataset, snapshots[-1])
