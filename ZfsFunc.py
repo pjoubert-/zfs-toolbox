@@ -56,7 +56,7 @@ def send_dataset(host1, host2, source_set, target_path, first, last, properties=
     except CalledProcessError:
         print "*error sending dataset %s*" % source_set
         print "command = %s" % str(command)
-        return "send dataset *failed*"
+        return False
     return True
 
 
@@ -75,7 +75,8 @@ def send_snapshot(host1, host2, source_set, target_path, dataset, snapshots, pro
             print line
     except CalledProcessError:
         print "*failure* sending snapshots"
-    return
+        return False
+    return True
 
 def remove_snapshots(host, dataset, to_delete):
     #print str(to_delete)

@@ -11,7 +11,9 @@ import argparse
 import Cleaner
 import yaml
 import pprint
+import sys
 
+success = True
 """
 snapshots functions
 """
@@ -84,7 +86,6 @@ def transfer_snasphots(host_1, host_2, host_1_path, host_2_path, snapshots, prop
                 snapshots[dataset], properties)
 
 
-
 """
 higher level functions
 """
@@ -110,11 +111,17 @@ def sync_snapshots(args):
 
         new_datasets, new_snapshots = find_last_common_snapshot(host_1_list, host_2_list, source_dataset, target_dataset)
 
-        transfer_datasets(source_host, target_host, source_dataset, target_dataset, new_datasets, properties)
-        transfer_snasphots(source_host, target_host, source_dataset, target_dataset, new_snapshots, properties)
+        status = transfer_datasets(source_host, target_host, source_dataset, target_dataset, new_datasets, properties)
+        if not status: success = status
+        status = transfer_snasphots(source_host, target_host, source_dataset, target_dataset, new_snapshots, properties)
+        if not status: success = status
         totaltime = time.time() - tps
         print "total duration: %d seconds" % int(totaltime)
         print
+    if success:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 def get_stats(args):
     """Computes statistics against the host"""
