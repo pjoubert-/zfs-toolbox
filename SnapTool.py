@@ -131,8 +131,8 @@ def get_stats(args):
     nsnapshot = reduce(lambda x, y: x + y, [len(snapshots) for snapshots in datasets['values']])
     print "Snapshots in %s:%s : %s" % (args.host, args.dataset,nsnapshot)
 
-def clean_holds(args):
-    ZfsFunc.clean(args.host, args.dataset, args.hold)
+def clean_holds(host, volume, hold):
+    ZfsFunc.clean(host, dataset, hold)
 
 def clean_snaps(args):
     try:
@@ -146,6 +146,8 @@ def clean_snaps(args):
     for host in sorted(conf):
         for volume in sorted(conf[host]):
             print "For %s at %s " % (volume, host)
+            # Is there holds to clean ?
+            clean_holds(host, volume, "not_backed_up")
             if not conf[host][volume].has_key('first'):
                 first = 0
             else:
@@ -194,4 +196,6 @@ if __name__ == "__main__":
     except argparse.ArgumentError:
         print str(e)
         parser.print_help()
+
+    sys.exit(0)
 

@@ -95,7 +95,6 @@ def remove_snapshots(host, dataset, to_delete):
     return deleted
 
 
-# to be used ?
 def clean(host, root_dataset, hold):
     datasets = list(host, root_dataset, type="snapshot", recursive=True, properties=['name', 'userrefs'])
     for dataset in sorted(datasets['values']):
