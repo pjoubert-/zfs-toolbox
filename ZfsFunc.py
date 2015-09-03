@@ -86,7 +86,7 @@ def remove_snapshots(host, dataset, to_delete):
             snap = "%s@%s" % (dataset, snapshot)
             command = (REMOTE_COMMAND, host, ZFS_COMMAND, "destroy -d %s" % snap)
             try:
-                print "delete %s" % snap
+                #print "delete %s" % snap
                 deleted += 1
                 for line in check_output(command).split('\n'):
                     print line
@@ -101,21 +101,22 @@ def clean(host, root_dataset, hold):
         for snapshot in sorted(datasets['values'][dataset]):
             refs = datasets['values'][dataset][snapshot][0]
             if int(refs) > 0:
-                print "%s : %d" % (str(snapshot), int(refs))
-            command = (REMOTE_COMMAND, host, "%s holds %s %s@%s" % (ZFS_COMMAND, GLOBAL_PARAMETERS, dataset, snapshot))
-            try:
-                for line in check_output(command).split('\n'):
-                    if line != "":
-                        result = line.split()
-                        snapname = result.pop(0)
-                        tag = result.pop(0)
-                        date = ' '.join(result)
-                        if tag == hold:
-                            print "cleaning %s on %s" % (hold, snapshot)
-                            command = (REMOTE_COMMAND, host, "%s release %s %s@%s" % (ZFS_COMMAND, hold, dataset, snapshot))
-                            for line in check_output(command).split('\n'):
-                                if line != "":
-                                    print line
-                        print "%s: tag = %s, date = %s" % (snapname, tag, date)
-            except CalledProcessError:
-                 return "list failed"
+                #print "%s : %d" % (str(snapshot), int(refs))
+                command = (REMOTE_COMMAND, host, "%s holds %s %s@%s" % (ZFS_COMMAND, GLOBAL_PARAMETERS, dataset, snapshot))
+                try:
+                    for line in check_output(command).split('\n'):
+                        if line != "":
+                            result = line.split()
+                            snapname = result.pop(0)
+                            tag = result.pop(0)
+                            date = ' '.join(result)
+                            if tag == hold:
+                                #print "cleaning %s on %s" % (hold, snapshot)
+                                command = (REMOTE_COMMAND, host, "%s release %s %s@%s" % (ZFS_COMMAND, hold, dataset, snapshot))
+                                for line in check_output(command).split('\n'):
+                                    if line != "":
+                                        pass
+                                        #print line
+                            #print "%s: tag = %s, date = %s" % (snapname, tag, date)
+                except CalledProcessError:
+                    return "list failed"

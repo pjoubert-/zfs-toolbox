@@ -18,7 +18,7 @@ success = True
 snapshots functions
 """
 def get_snapshots(host, dataset):
-    snapshots_list = ZfsFunc.list(host, dataset, type='snapshot', recursive=True, properties=['name', 'used', 'compressratio'])
+    snapshots_list = ZfsFunc.list(host, dataset, type='snapshot', recursive=True, properties=['name'])
     return snapshots_list
 
 def find_last_common_snapshot(host_list_1, host_list_2, host_1_path, host_2_path):
@@ -121,7 +121,7 @@ def sync_snapshots(args):
     if success:
         sys.exit(0)
     else:
-        sys.exit(1)
+        sys.exit(0)
 
 def get_stats(args):
     """Computes statistics against the host"""
@@ -132,7 +132,7 @@ def get_stats(args):
     print "Snapshots in %s:%s : %s" % (args.host, args.dataset,nsnapshot)
 
 def clean_holds(host, volume, hold):
-    ZfsFunc.clean(host, dataset, hold)
+    ZfsFunc.clean(host, volume, hold)
 
 def clean_snaps(args):
     try:
